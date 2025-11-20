@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MobileAppBackendNet8")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b40a4bb611cf3ee8cae1e540f4b41ba4d539d123")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+850aef8cde4d53c3180c5d2d089ecabf7a2fc287")]
 [assembly: System.Reflection.AssemblyProductAttribute("MobileAppBackendNet8")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MobileAppBackendNet8")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
