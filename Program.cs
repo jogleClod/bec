@@ -4,6 +4,7 @@ using MobileAppBackend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,18 +14,32 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Entity Framework with PostgreSQL
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-if (string.IsNullOrEmpty(connectionString))
+if (string.IsNullOrEmpty(databaseUrl))
 {
     throw new Exception("DATABASE_URL environment variable is missing.");
 }
 
+// Преобразуем URI из Render в Npgsql connection string
+var databaseUri = new Uri(databaseUrl);
+var userInfo = databaseUri.UserInfo.Split(':');
+
+var npgsqlConnectionString = new NpgsqlConnectionStringBuilder
+{
+    Host = databaseUri.Host,
+    Port = databaseUri.Port > 0 ? databaseUri.Port : 5432,
+    Username = userInfo[0],
+    Password = userInfo[1],
+    Database = databaseUri.AbsolutePath.TrimStart('/'),
+    SslMode = SslMode.Require,
+    TrustServerCertificate = true
+}.ToString();
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseNpgsql(connectionString);
+    options.UseNpgsql(npgsqlConnectionString);
 });
-
 
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -60,7 +75,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-
 // Auto-create database and tables
 using (var scope = app.Services.CreateScope())
 {
@@ -95,6 +109,7 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "❌ Ошибка при создании таблиц");
     }
 }
+
 // Тестовый эндпоинт для проверки БД
 app.MapGet("/test-db", async (AppDbContext dbContext) =>
 {
@@ -112,5 +127,7 @@ app.MapGet("/test-db", async (AppDbContext dbContext) =>
         return Results.Problem($"Database error: {ex.Message}");
     }
 });
+
+// Используем порт, который назначает Render
 var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
 app.Run($"http://0.0.0.0:{port}");
